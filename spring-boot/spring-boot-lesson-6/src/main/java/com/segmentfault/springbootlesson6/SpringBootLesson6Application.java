@@ -6,6 +6,7 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 @ComponentScan("com.segmentfault.controller")
+@ComponentScan("com.segmentfault.service")
 public class SpringBootLesson6Application {
 
     public static void main(String[] args) {

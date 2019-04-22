@@ -1,8 +1,11 @@
 package com.segmentfault.controller;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import com.segmentfault.domain.User;
+import com.segmentfault.service.UserService;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCallback;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
@@ -23,6 +26,17 @@ public class JdbcController {
     @Resource
     private DataSource dataSource;
 
+    @Resource
+    private JdbcTemplate jdbcTemplate;
+
+    @Resource
+    private UserService userService;
+
+    /**
+     * jdbc方式
+     * @param id
+     * @return
+     */
     @RequestMapping("/user/get")
     public Map<String,Object> getUser(@RequestParam(value = "id", defaultValue = "1") int id) {
         Map<String, Object> map = new HashMap<>();
@@ -56,4 +70,41 @@ public class JdbcController {
 
         return map;
     }
+
+    /**
+     * jdbcTemplate方式
+     * @param user
+     * @return
+     */
+    @RequestMapping("/user/add2")
+    @ResponseBody
+    public Map<String,Object> addUser(@RequestBody User user) {
+        Map<String,Object> map = new HashMap<>();
+
+        Boolean result = jdbcTemplate.execute("INSERT INTO user(name,age) VALUES(?,?);", new PreparedStatementCallback<Boolean>() {
+            @Override
+            public Boolean doInPreparedStatement(PreparedStatement preparedStatement) throws SQLException, DataAccessException {
+                preparedStatement.setString(1, user.getName());
+                preparedStatement.setInt(2, user.getAge());
+
+                return preparedStatement.executeUpdate() > 0;
+            }
+        });
+
+        map.put("success",result);
+
+        return map;
+    }
+
+    @RequestMapping("/user/add")
+    @ResponseBody
+    public Map<String,Object> saveUser(@RequestBody User user) {
+        Map<String,Object> map = new HashMap<>();
+
+        map.put("success",userService.save(user));
+
+        return map;
+
+    }
+
 }
